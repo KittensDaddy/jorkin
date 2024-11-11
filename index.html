@@ -122,7 +122,7 @@
                 function drawGifFrame() {
                     // Redraw the image or video on the canvas
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(gif, gifX, gifY);
+                    ctx.drawImage(gif, gifX, gifY); // Overlay the moving gif on the canvas
 
                     // Add frame to gif generator
                     gifGenerator.addFrame(canvas, { copy: true, delay: 50 });
@@ -142,11 +142,11 @@
                         gifGenerator.on('finished', function(blob) {
                             const url = URL.createObjectURL(blob);
                             downloadLink.href = url;
-                            downloadButton.style.display = "block";
-                            status.textContent = "Processing complete.";
+                            downloadButton.style.display = "block"; // Show download button
+                            status.textContent = "Processing complete."; // Status message
                         });
 
-                        gifGenerator.render();
+                        gifGenerator.render(); // Render the GIF
                     }
                 }
 
