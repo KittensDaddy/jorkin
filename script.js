@@ -39,7 +39,7 @@ function addOverlayToImage(imageURL) {
     ctx.drawImage(image, 0, 0); // Draw the image onto the canvas
 
     const overlayImage = new Image();
-    overlayImage.src = 'jorkin.gif';  // Your fixed GIF overlay
+    overlayImage.src = '/jorkin.gif';  // Your fixed GIF overlay
 
     overlayImage.onload = function() {
       ctx.drawImage(overlayImage, 50, 50);  // Position of overlay image on the main image
@@ -81,7 +81,7 @@ function addOverlayToVideo(videoURL) {
       ctx.drawImage(video, 0, 0);
 
       const overlayImage = new Image();
-      overlayImage.src = 'jorkin.gif';  // Your fixed GIF overlay
+      overlayImage.src = '/jorkin.gif';  // Your fixed GIF overlay
 
       overlayImage.onload = function() {
         ctx.drawImage(overlayImage, 50, 50);  // Position of overlay image on the video frame
