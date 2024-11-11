@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overlay GIF onto Image or Video</title>
+    <title>Overlay GIF onto Image, GIF, or Video</title>
     <style>
         #preview {
             display: none;
@@ -13,10 +13,13 @@
             display: none;
             margin-top: 20px;
         }
+        #status {
+            margin-top: 10px;
+        }
     </style>
     
-    <!-- Use the locally hosted gif.js file -->
-    <script src="gif.min.js"></script> <!-- Path to your local gif.min.js file -->
+    <!-- Load gif.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
 </head>
 <body>
     <h1>Overlay GIF onto Image, GIF, or Video</h1>
@@ -40,8 +43,7 @@
         document.getElementById('processButton').addEventListener('click', function() {
             const url = document.getElementById('imageUrl').value;
             const canvas = document.getElementById('canvas');
-			const ctx = canvas.getContext('2d');
-			ctx.willReadFrequently = true;  // Set this flag for optimized read operations
+            const ctx = canvas.getContext('2d');
             const status = document.getElementById('status');
             const preview = document.getElementById('preview');
             const downloadButton = document.getElementById('downloadButton');
@@ -114,7 +116,7 @@
                     height: canvas.height,
                     frameDelay: 100, // Frame delay to control speed (higher delay = slower)
                     transparent: 0xFFFFFF,
-                    workerScript: './gif.worker.js' // Path to your local gif.worker.js file
+                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
                 });
 
                 // Add frames to the gifGenerator as we draw the gif
