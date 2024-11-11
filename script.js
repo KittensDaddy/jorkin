@@ -23,7 +23,7 @@ function loadVideo(src) {
 // Function to process and overlay GIF onto image/video
 async function processAndOverlay() {
     const imageSrc = document.getElementById('imageUrl').value;  // User input image URL
-    const overlaySrc = '/jorkin.gif'; // Overlay GIF path
+    const overlaySrc = '/assets/jorkin.gif'; // Overlay GIF path
 
     try {
         // Load the main image
@@ -52,6 +52,7 @@ async function processAndOverlay() {
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 displayPreview(url);  // Show the result as a preview
+                enableDownload(url);  // Enable download link for the GIF
             } else {
                 console.error("Error: Failed to create blob from canvas.");
             }
@@ -70,6 +71,15 @@ function displayPreview(url) {
     const previewImg = document.getElementById('preview');
     previewImg.src = url;  // Set the preview image source to the Blob URL
     previewImg.style.display = 'block';  // Show the preview image
+}
+
+// Function to enable download of the generated GIF
+function enableDownload(url) {
+    const downloadButton = document.getElementById('downloadButton');
+    const downloadLink = document.getElementById('downloadLink');
+    downloadLink.href = url;  // Set the download link to the GIF Blob URL
+    downloadLink.download = 'processed-image.gif';  // Set the default filename for download
+    downloadButton.style.display = 'inline-block';  // Show the download button
 }
 
 // Event listener for process button

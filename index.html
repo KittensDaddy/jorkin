@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Overlay</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> <!-- Correct favicon link -->
     <style>
         #preview {
             display: none;
             max-width: 100%;
+        }
+        #downloadButton {
+            display: none;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -22,8 +27,14 @@
     <p id="status">Ready</p>
     
     <canvas id="canvas" style="display:none;"></canvas>
-    <img id="preview" alt="Preview of GIF" />
     
+    <img id="preview" alt="Preview of GIF" />
+
+    <!-- Download Button for the processed GIF -->
+    <a id="downloadLink" href="" style="display:none;">
+        <button id="downloadButton">Download Processed GIF</button>
+    </a>
+
     <script src="script.js"></script>
 </body>
 </html>
