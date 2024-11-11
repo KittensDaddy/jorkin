@@ -7,88 +7,157 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            text-align: center;
             margin: 0;
-            background-color: #f4f4f4;
+            padding: 0;
         }
-        input, button {
-            margin: 10px;
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .preview-container {
+            position: relative;
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        .overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+        }
+        input[type="file"], input[type="url"] {
+            margin: 10px 0;
+            padding: 10px;
         }
         #preview {
-            max-width: 90%;
-            max-height: 400px;
-            margin-top: 20px;
+            max-width: 100%;
+            max-height: 500px;
+            display: none;
+        }
+        #error {
+            color: red;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
+
+<div class="container">
     <h1>GIF Overlay Tool</h1>
-    <p>Upload or link a picture, GIF, or video, and add a fixed "jorkin.gif" overlay.</p>
+    <p>Upload a picture, GIF, or video, or paste a link to it, and we will overlay <strong>jorkin.gif</strong> in the bottom left corner.</p>
     
-    <input type="file" id="fileInput" accept="image/*,video/*,video/mp4" />
-    <input type="text" id="urlInput" placeholder="Or enter image/video URL here" />
-    <button onclick="processFile()">Process</button>
+    <input type="file" id="fileInput" accept="image/*,video/*">
+    <input type="url" id="urlInput" placeholder="Or paste URL here" />
+    <button onclick="processFile()">Overlay GIF</button>
 
-    <div id="errorMessage" style="color: red;"></div>
-
-    <div>
-        <h2>Preview:</h2>
-        <img id="preview" src="" alt="Preview will appear here" />
+    <div class="preview-container">
+        <img id="preview" alt="Preview of overlayed GIF">
+        <video id="videoPreview" controls style="display: none;" width="100%"></video>
+        <img id="overlayGif" class="overlay" src="jorkin.gif" alt="Jorkin GIF">
     </div>
 
-    <script>
-        const maxFileSize = 10 * 1024 * 1024; // 10MB limit
-        const jorkinGifUrl = 'jorkin.gif'; // Local path to 'jorkin.gif' in the same folder
+    <div id="error"></div>
+</div>
 
-        function processFile() {
-            const fileInput = document.getElementById('fileInput');
-            const urlInput = document.getElementById('urlInput');
-            const errorMessage = document.getElementById('errorMessage');
-            const preview = document.getElementById('preview');
-            errorMessage.textContent = '';
-            preview.src = ''; // Reset preview image
+<script>
+    const jorkinGifSrc = 'jorkin.gif'; // URL or local path to the jorkin.gif
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
 
-            const file = fileInput.files[0];
-            const fileUrl = urlInput.value;
+    function processFile() {
+        const fileInput = document.getElementById('fileInput');
+        const urlInput = document.getElementById('urlInput');
+        const preview = document.getElementById('preview');
+        const videoPreview = document.getElementById('videoPreview');
+        const overlayGif = document.getElementById('overlayGif');
+        const errorDiv = document.getElementById('error');
 
-            if (!file && !fileUrl) {
-                errorMessage.textContent = 'Please provide a file or a URL.';
-                return;
-            }
-
-            if (file && file.size > maxFileSize) {
-                errorMessage.textContent = 'File size exceeds 10MB. Please upload a smaller file.';
-                return;
-            }
-
-            let mediaSrc = file ? URL.createObjectURL(file) : fileUrl;
-            preview.src = mediaSrc;
-
-            const gifOverlay = new Image();
-            gifOverlay.src = jorkinGifUrl;
-
-            gifOverlay.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const media = new Image();
-                media.src = mediaSrc;
-
-                media.onload = function() {
-                    // Set canvas size to match media dimensions
-                    canvas.width = media.width;
-                    canvas.height = media.height;
-                    ctx.drawImage(media, 0, 0); // Draw the media on the canvas
-                    ctx.drawImage(gifOverlay, 0, 0); // Overlay the gif
-
-                    // Display the result as a preview image
-                    preview.src = canvas.toDataURL('image/gif');
-                };
-            };
+        let file;
+        if (fileInput.files.length > 0) {
+            file = fileInput.files[0];
+        } else if (urlInput.value) {
+            file = urlInput.value;
         }
-    </script>
+
+        // Clear previous error or file preview
+        errorDiv.textContent = '';
+        preview.style.display = 'none';
+        videoPreview.style.display = 'none';
+
+        if (file) {
+            if (typeof file === 'string') {
+                // Handle URL input
+                if (isValidUrl(file)) {
+                    handleUrl(file);
+                } else {
+                    showError('Invalid URL');
+                }
+            } else {
+                // Handle file input
+                if (file.size > maxFileSize) {
+                    showError('File is too large. Maximum size is 10MB.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileType = file.type;
+                    if (fileType.startsWith('image')) {
+                        handleImage(e.target.result);
+                    } else if (fileType.startsWith('video')) {
+                        handleVideo(e.target.result);
+                    } else {
+                        showError('Unsupported file type.');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        } else {
+            showError('Please upload a file or provide a URL.');
+        }
+    }
+
+    function handleImage(dataUrl) {
+        const preview = document.getElementById('preview');
+        const overlayGif = document.getElementById('overlayGif');
+        preview.style.display = 'block';
+        preview.src = dataUrl;
+    }
+
+    function handleVideo(dataUrl) {
+        const videoPreview = document.getElementById('videoPreview');
+        const preview = document.getElementById('preview');
+        preview.style.display = 'none';
+        videoPreview.style.display = 'block';
+        videoPreview.src = dataUrl;
+    }
+
+    function handleUrl(url) {
+        const preview = document.getElementById('preview');
+        const videoPreview = document.getElementById('videoPreview');
+        const fileType = url.split('.').pop().toLowerCase();
+
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
+            preview.style.display = 'block';
+            preview.src = url;
+        } else if (['mp4', 'webm', 'ogg'].includes(fileType)) {
+            videoPreview.style.display = 'block';
+            videoPreview.src = url;
+        } else {
+            showError('Unsupported file type.');
+        }
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error');
+        errorDiv.textContent = message;
+    }
+
+    function isValidUrl(str) {
+        const pattern = new RegExp('^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[^\\s]*)?$', 'i');
+        return pattern.test(str);
+    }
+</script>
+
 </body>
 </html>
