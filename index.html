@@ -40,6 +40,15 @@
             color: red;
             margin-top: 10px;
         }
+        #downloadBtn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -59,7 +68,10 @@
     </div>
 
     <div id="error"></div>
+    <button id="downloadBtn" onclick="downloadGif()">Download GIF</button>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@0.4.1/dist/html2canvas.min.js"></script>
 
 <script>
     const jorkinGifSrc = 'jorkin.gif'; // URL or local path to the jorkin.gif
@@ -72,6 +84,7 @@
         const videoPreview = document.getElementById('videoPreview');
         const overlayGif = document.getElementById('overlayGif');
         const errorDiv = document.getElementById('error');
+        const downloadBtn = document.getElementById('downloadBtn');
 
         let file;
         if (fileInput.files.length > 0) {
@@ -122,6 +135,7 @@
         const overlayGif = document.getElementById('overlayGif');
         preview.style.display = 'block';
         preview.src = dataUrl;
+        document.getElementById('downloadBtn').style.display = 'block';
     }
 
     function handleVideo(dataUrl) {
@@ -130,6 +144,7 @@
         preview.style.display = 'none';
         videoPreview.style.display = 'block';
         videoPreview.src = dataUrl;
+        document.getElementById('downloadBtn').style.display = 'none'; // Video download is more complex
     }
 
     function handleUrl(url) {
@@ -140,9 +155,11 @@
         if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
             preview.style.display = 'block';
             preview.src = url;
+            document.getElementById('downloadBtn').style.display = 'block';
         } else if (['mp4', 'webm', 'ogg'].includes(fileType)) {
             videoPreview.style.display = 'block';
             videoPreview.src = url;
+            document.getElementById('downloadBtn').style.display = 'none'; // Video download is more complex
         } else {
             showError('Unsupported file type.');
         }
@@ -156,6 +173,21 @@
     function isValidUrl(str) {
         const pattern = new RegExp('^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[^\\s]*)?$', 'i');
         return pattern.test(str);
+    }
+
+    function downloadGif() {
+        const preview = document.getElementById('preview');
+        const overlayGif = document.getElementById('overlayGif');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        html2canvas(document.querySelector('.preview-container')).then(canvas => {
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'combined_overlay.gif';
+                link.click();
+            });
+        });
     }
 </script>
 
