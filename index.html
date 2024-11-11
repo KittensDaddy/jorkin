@@ -134,8 +134,8 @@
                     preview.src = canvas.toDataURL();
                     preview.style.display = "block";
 
-                    // Check the file size, stop adding frames if it exceeds the limit
-                    if (frameIndex < 20 && gifGenerator.getBytes() < 2 * 1024 * 1024) {
+                    // Limit number of frames
+                    if (frameIndex < 30) { // Limit to 30 frames for the GIF
                         requestAnimationFrame(drawGifFrame);
                     } else {
                         // Process the GIF and generate download link
