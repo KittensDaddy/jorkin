@@ -3,104 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combine Media with Jorkin.gif</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20px;
-        }
-        input[type="file"], input[type="url"] {
-            margin: 10px;
-        }
-        #preview {
-            margin-top: 20px;
-            max-width: 100%;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #save-btn {
-            display: none;
-            margin-top: 20px;
-        }
-        #error-message {
-            color: red;
-        }
-    </style>
+    <title>GIF Combiner</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-    <h1>Combine Media with Jorkin.gif</h1>
-    
-    <p>Upload an image or video, or provide a URL.</p>
-    
-    <input type="file" id="media-file" accept="image/*, video/*">
-    <p>OR</p>
-    <input type="url" id="media-url" placeholder="Enter URL of an image, gif, or video">
-    <br>
-    
-    <button onclick="processMedia()">Process Media</button>
-
-    <p id="error-message"></p>
-
-    <h2>Preview:</h2>
-    <img id="preview" alt="Preview of combined GIF">
-
-    <button id="save-btn" onclick="saveCombinedGif()">Save Combined GIF</button>
-
-    <script>
-        function processMedia() {
-            const fileInput = document.getElementById('media-file');
-            const urlInput = document.getElementById('media-url');
-            const previewImage = document.getElementById('preview');
-            const errorMessage = document.getElementById('error-message');
-            const saveButton = document.getElementById('save-btn');
-            errorMessage.textContent = '';
-
-            const formData = new FormData();
-            let mediaFile = fileInput.files[0];
-            let mediaUrl = urlInput.value;
-
-            if (!mediaFile && !mediaUrl) {
-                errorMessage.textContent = 'Please provide a file or a URL.';
-                return;
-            }
-
-            if (mediaFile) {
-                if (mediaFile.size > 10 * 1024 * 1024) {
-                    errorMessage.textContent = 'File size exceeds the 10MB limit.';
-                    return;
-                }
-                formData.append('media', mediaFile);
-            } else {
-                formData.append('url', mediaUrl);
-            }
-
-            // Send the request to the Vercel serverless function
-            fetch('/api/process-media', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                previewImage.src = url;
-                saveButton.style.display = 'block';
-            })
-            .catch(error => {
-                errorMessage.textContent = 'Error: ' + error;
-            });
-        }
-
-        function saveCombinedGif() {
-            const previewImage = document.getElementById('preview');
-            const link = document.createElement('a');
-            link.href = previewImage.src;
-            link.download = 'combined.gif';
-            link.click();
-        }
-    </script>
-    
+    <h1>GIF Combiner</h1>
+    <input type="text" id="gifUrl" placeholder="Enter GIF/Video URL" />
+    <button id="combineBtn">Combine GIF</button>
+    <div id="previewContainer">
+        <img id="combinedGif" src="" alt="Combined GIF Preview" />
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
