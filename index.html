@@ -83,7 +83,8 @@
 
                 // Set up canvas to draw image and overlay
                 const canvas = document.getElementById('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });  // Added willReadFrequently
+
                 canvas.width = image.width;
                 canvas.height = image.height;
 
