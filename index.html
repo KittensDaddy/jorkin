@@ -3,38 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overlay GIF onto Image, GIF, or Video</title>
+    <title>Overlay GIF on Image, GIF, or Video</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
         #preview {
             display: none;
+            margin-top: 20px;
             max-width: 100%;
+            height: auto;
+        }
+        #status {
+            margin-top: 20px;
         }
         #downloadButton {
             display: none;
             margin-top: 20px;
         }
-        #status {
-            margin-top: 10px;
-        }
     </style>
-    
-    <!-- Load gif.js library -->
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
 </head>
 <body>
-    <h1>Overlay GIF onto Image, GIF, or Video</h1>
+    <h1>Overlay GIF on Image, GIF, or Video</h1>
 
     <label for="imageUrl">Enter Image, GIF, or Video URL:</label>
-    <input type="text" id="imageUrl" placeholder="Enter URL of image, GIF, or video">
-    
+    <input type="text" id="imageUrl" placeholder="Enter URL">
     <button id="processButton">Process</button>
     
     <p id="status">Ready</p>
-    
-    <canvas id="canvas" style="display:none;"></canvas>
-    
-    <img id="preview" alt="Preview of GIF" />
 
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <img id="preview" alt="Preview of GIF">
+    
     <a id="downloadLink" href="" style="display:none;">
         <button id="downloadButton">Download Processed GIF</button>
     </a>
@@ -48,42 +52,38 @@
             const preview = document.getElementById('preview');
             const downloadButton = document.getElementById('downloadButton');
             const downloadLink = document.getElementById('downloadLink');
+            const gifUrl = "jorkin.gif"; // The moving overlay GIF
 
             status.textContent = "Processing...";
 
-            // Clear previous canvas or preview
+            // Clear previous content
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             preview.style.display = "none";
             downloadButton.style.display = "none";
 
             const img = new Image();
-            img.crossOrigin = "anonymous"; // Enable cross-origin for images
-
+            img.crossOrigin = "anonymous"; // Allow cross-origin images
             img.onload = function() {
-                // Set canvas size based on image size
+                // Set canvas size based on the image
                 canvas.width = img.width;
                 canvas.height = img.height;
-
-                // Draw the image onto the canvas
                 ctx.drawImage(img, 0, 0);
-                overlayGifOnCanvas(canvas, ctx);
+                processOverlayGif();
             };
 
             img.onerror = function() {
-                // If image fails, attempt to load a video
+                // If image fails, try loading as a video
                 const video = document.createElement('video');
                 video.src = url;
-                video.crossOrigin = 'anonymous'; // Enable cross-origin for videos
-
+                video.crossOrigin = "anonymous";
+                
                 video.onloadeddata = function() {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-
                     video.play();
-                    // Draw each video frame onto canvas
                     function drawFrame() {
                         ctx.drawImage(video, 0, 0);
-                        overlayGifOnCanvas(canvas, ctx);
+                        processOverlayGif();
                         if (!video.paused && !video.ended) {
                             requestAnimationFrame(drawFrame);
                         }
@@ -97,65 +97,60 @@
             };
 
             img.src = url;
-        });
 
-        function overlayGifOnCanvas(canvas, ctx) {
-            const gif = new Image();
-            gif.src = "jorkin.gif"; // The moving overlay GIF
-            gif.onload = function() {
-                const gifWidth = gif.width;
-                const gifHeight = gif.height;
-                const gifX = (canvas.width - gifWidth) / 2;
-                const gifY = (canvas.height - gifHeight) / 2;
+            function processOverlayGif() {
+                const gif = new Image();
+                gif.src = gifUrl;
+                
+                gif.onload = function() {
+                    const gifWidth = gif.width;
+                    const gifHeight = gif.height;
+                    const gifX = (canvas.width - gifWidth) / 2;
+                    const gifY = (canvas.height - gifHeight) / 2;
 
-                // Create the GIF.js object with a higher frame rate and quality control
-                const gifGenerator = new GIF({
-                    workers: 2,
-                    quality: 10,  // Lower quality to reduce file size
-                    width: canvas.width,
-                    height: canvas.height,
-                    frameDelay: 100, // Frame delay to control speed (higher delay = slower)
-                    transparent: 0xFFFFFF,
-                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
-                });
+                    const gifGenerator = new GIF({
+                        workers: 2,
+                        quality: 10,
+                        width: canvas.width,
+                        height: canvas.height,
+                        frameDelay: 100,
+                        transparent: 0xFFFFFF,
+                        workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+                    });
 
-                // Add frames to the gifGenerator as we draw the gif
-                let frameIndex = 0;
+                    let frameIndex = 0;
 
-                function drawGifFrame() {
-                    // Redraw the image or video on the canvas
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(gif, gifX, gifY); // Overlay the moving gif on the canvas
+                    function drawGifFrame() {
+                        // Redraw the background image/video
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(gif, gifX, gifY);
 
-                    // Add frame to gif generator
-                    gifGenerator.addFrame(canvas, { copy: true, delay: 50 });
+                        // Add the current canvas frame to the GIF generator
+                        gifGenerator.addFrame(canvas, { copy: true, delay: 50 });
 
-                    frameIndex++;
+                        frameIndex++;
 
-                    // Show the preview image
-                    const preview = document.getElementById('preview');
-                    preview.src = canvas.toDataURL();
-                    preview.style.display = "block";
+                        // Show the preview
+                        preview.src = canvas.toDataURL();
+                        preview.style.display = "block";
 
-                    // Limit number of frames
-                    if (frameIndex < 30) { // Limit to 30 frames for the GIF
-                        requestAnimationFrame(drawGifFrame);
-                    } else {
-                        // Process the GIF and generate download link
-                        gifGenerator.on('finished', function(blob) {
-                            const url = URL.createObjectURL(blob);
-                            downloadLink.href = url;
-                            downloadButton.style.display = "block"; // Show download button
-                            status.textContent = "Processing complete."; // Status message
-                        });
-
-                        gifGenerator.render(); // Render the GIF
+                        if (frameIndex < 30) { // Process a limited number of frames
+                            requestAnimationFrame(drawGifFrame);
+                        } else {
+                            gifGenerator.on('finished', function(blob) {
+                                const url = URL.createObjectURL(blob);
+                                downloadLink.href = url;
+                                downloadButton.style.display = "block";
+                                status.textContent = "Processing complete.";
+                            });
+                            gifGenerator.render(); // Render and finalize the GIF
+                        }
                     }
-                }
 
-                drawGifFrame();
-            };
-        }
+                    drawGifFrame();
+                };
+            }
+        });
     </script>
 </body>
 </html>
