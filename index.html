@@ -1,103 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Overlay GIF onto Media from URL</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    #preview {
-      margin-top: 20px;
-      display: block;
-      max-width: 100%;
-    }
-    #videoPreview {
-      margin-top: 20px;
-      display: block;
-      max-width: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF Overlay Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        input, button {
+            margin: 10px;
+        }
+        #preview {
+            max-width: 90%;
+            max-height: 400px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
+    <h1>GIF Overlay Tool</h1>
+    <p>Upload or link a picture, GIF, or video, and add a fixed "jorkin.gif" overlay.</p>
+    
+    <input type="file" id="fileInput" accept="image/*,video/*,video/mp4" />
+    <input type="text" id="urlInput" placeholder="Or enter image/video URL here" />
+    <button onclick="processFile()">Process</button>
 
-  <h1>Enter a URL to Overlay jorkin.gif</h1>
+    <div id="errorMessage" style="color: red;"></div>
 
-  <!-- Input field for the URL -->
-  <input type="text" id="urlInput" placeholder="Enter image or video URL here" style="width: 300px;">
-  <br><br>
+    <div>
+        <h2>Preview:</h2>
+        <img id="preview" src="" alt="Preview will appear here" />
+    </div>
 
-  <!-- Preview area -->
-  <div id="previewContainer">
-    <img id="preview" src="" alt="Image preview will appear here" style="display:none;">
-    <video id="videoPreview" controls style="display:none;"></video>
-  </div>
+    <script>
+        const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+        const jorkinGifUrl = 'https://your-server.com/jorkin.gif'; // Replace with the correct path to 'jorkin.gif'
 
-  <!-- Script to handle URL input and GIF overlay -->
-  <script>
-    const jorkinGifUrl = '/jorkin.gif'; // Change this to your hosted jorkin.gif URL
+        function processFile() {
+            const fileInput = document.getElementById('fileInput');
+            const urlInput = document.getElementById('urlInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const preview = document.getElementById('preview');
+            errorMessage.textContent = '';
+            preview.src = ''; // Reset preview image
 
-    document.getElementById('urlInput').addEventListener('input', function(event) {
-      const url = event.target.value;
-      if (!url) return;
+            const file = fileInput.files[0];
+            const fileUrl = urlInput.value;
 
-      const previewImage = document.getElementById('preview');
-      const previewVideo = document.getElementById('videoPreview');
+            if (!file && !fileUrl) {
+                errorMessage.textContent = 'Please provide a file or a URL.';
+                return;
+            }
 
-      // Reset previews
-      previewImage.style.display = 'none';
-      previewVideo.style.display = 'none';
+            if (file && file.size > maxFileSize) {
+                errorMessage.textContent = 'File size exceeds 10MB. Please upload a smaller file.';
+                return;
+            }
 
-      // Check if the URL is an image or video
-      const fileType = getFileType(url);
-      if (fileType.startsWith('image')) {
-        // For images, display the image and overlay the GIF
-        const img = new Image();
-        img.src = url;
-        img.onload = () => {
-          // Create a canvas to overlay the GIF onto the image
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
+            let mediaSrc = file ? URL.createObjectURL(file) : fileUrl;
+            preview.src = mediaSrc;
 
-          // Load the GIF and overlay it
-          const gif = new Image();
-          gif.src = jorkinGifUrl;
-          gif.onload = () => {
-            // Position the GIF in the center
-            const x = (img.width - gif.width) / 2;
-            const y = (img.height - gif.height) / 2;
-            ctx.drawImage(gif, x, y);
+            const gifOverlay = new Image();
+            gifOverlay.src = jorkinGifUrl;
 
-            // Set the canvas as the preview image
-            previewImage.src = canvas.toDataURL();
-            previewImage.style.display = 'block';
-          };
-        };
-      } else if (fileType.startsWith('video')) {
-        // For videos, display the video (no overlaying)
-        previewVideo.style.display = 'block';
-        previewVideo.src = url;
-      } else {
-        alert('Unsupported media type. Please provide an image or video URL.');
-      }
-    });
+            gifOverlay.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const media = new Image();
+                media.src = mediaSrc;
 
-    function getFileType(url) {
-      const extension = url.split('.').pop().toLowerCase();
-      if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-        return 'image';
-      } else if (['mp4', 'webm', 'ogg'].includes(extension)) {
-        return 'video';
-      }
-      return 'unknown';
-    }
-  </script>
+                media.onload = function() {
+                    // Set canvas size to match media dimensions
+                    canvas.width = media.width;
+                    canvas.height = media.height;
+                    ctx.drawImage(media, 0, 0); // Draw the media on the canvas
+                    ctx.drawImage(gifOverlay, 0, 0); // Overlay the gif
 
+                    // Display the result as a preview image
+                    preview.src = canvas.toDataURL('image/gif');
+                };
+            };
+        }
+    </script>
 </body>
 </html>
