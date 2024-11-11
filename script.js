@@ -23,7 +23,7 @@ function loadVideo(src) {
 // Function to process and overlay GIF onto image/video
 async function processAndOverlay() {
     const imageSrc = document.getElementById('imageUrl').value;  // User input image URL
-    const overlaySrc = '/assets/jorkin.gif'; // Overlay GIF path
+    const overlaySrc = '/jorkin.gif'; // Overlay GIF path
 
     try {
         // Load the main image
