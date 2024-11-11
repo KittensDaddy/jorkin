@@ -68,7 +68,7 @@
     </div>
 
     <div id="error"></div>
-    <button id="downloadBtn" onclick="downloadGif()">Download GIF</button>
+    <button id="downloadBtn" onclick="downloadGif()">Download Combined GIF</button>
 </div>
 
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -177,16 +177,36 @@
 
     function downloadGif() {
         const preview = document.getElementById('preview');
+        const videoPreview = document.getElementById('videoPreview');
         const overlayGif = document.getElementById('overlayGif');
+
+        // Check if it's an image or video
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         const downloadBtn = document.getElementById('downloadBtn');
 
-        html2canvas(document.querySelector('.preview-container')).then(canvas => {
-            canvas.toBlob(function(blob) {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'combined_overlay.gif';
-                link.click();
-            });
+        if (preview.style.display === 'block') {
+            // Image case
+            canvas.width = preview.width;
+            canvas.height = preview.height;
+            ctx.drawImage(preview, 0, 0);
+        } else if (videoPreview.style.display === 'block') {
+            // Video frame capture
+            const video = videoPreview;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+        }
+
+        // Overlay the GIF onto the canvas
+        ctx.drawImage(overlayGif, 10, canvas.height - overlayGif.height - 10);
+
+        // Convert canvas to GIF (using an external library like gif.js or similar would be needed here)
+        canvas.toBlob(function(blob) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'combined_overlay.gif';
+            link.click();
         });
     }
 </script>
