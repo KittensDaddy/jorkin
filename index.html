@@ -1,73 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overlay GIF</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        input[type="file"], input[type="url"] {
-            margin-top: 20px;
-        }
-        img, video {
-            max-width: 100%;
-            margin-top: 20px;
-        }
-        #preview {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay GIF onto Media from URL</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    #preview {
+      margin-top: 20px;
+      display: block;
+      max-width: 100%;
+    }
+    #videoPreview {
+      margin-top: 20px;
+      display: block;
+      max-width: 100%;
+    }
+  </style>
 </head>
 <body>
-    <h1>Overlay GIF on Your Media</h1>
-    <p>Upload or link to an image, GIF, or video below, and we'll overlay the <strong>jorkin.gif</strong> for you!</p>
-    
-    <!-- File Input -->
-    <input type="url" id="urlInput" placeholder="Enter image/video URL" />
-    <br>
-    <input type="file" id="fileInput" />
-    <br>
-    <button onclick="processMedia()">Overlay GIF</button>
-    
-    <!-- Preview Area -->
-    <div id="preview"></div>
 
-    <script>
-        const urlInput = document.getElementById('urlInput');
-        const fileInput = document.getElementById('fileInput');
-        const previewDiv = document.getElementById('preview');
+  <h1>Enter a URL to Overlay jorkin.gif</h1>
 
-        function processMedia() {
-            previewDiv.innerHTML = ''; // Clear preview
+  <!-- Input field for the URL -->
+  <input type="text" id="urlInput" placeholder="Enter image or video URL here" style="width: 300px;">
+  <br><br>
 
-            const file = fileInput.files[0];
-            const url = urlInput.value;
-            
-            if (file || url) {
-                const formData = new FormData();
-                
-                if (file) formData.append('file', file);
-                if (url) formData.append('url', url);
+  <!-- Preview area -->
+  <div id="previewContainer">
+    <img id="preview" src="" alt="Image preview will appear here" style="display:none;">
+    <video id="videoPreview" controls style="display:none;"></video>
+  </div>
 
-                fetch('/api/process.js', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const img = document.createElement('img');
-                    img.src = url;
-                    previewDiv.appendChild(img);
-                })
-                .catch(err => alert('Error processing the media.'));
-            } else {
-                alert('Please provide either a file or a URL!');
-            }
-        }
-    </script>
+  <!-- Script to handle URL input and GIF overlay -->
+  <script>
+    const jorkinGifUrl = '/jorkin.gif'; // Change this to your hosted jorkin.gif URL
+
+    document.getElementById('urlInput').addEventListener('input', function(event) {
+      const url = event.target.value;
+      if (!url) return;
+
+      const previewImage = document.getElementById('preview');
+      const previewVideo = document.getElementById('videoPreview');
+
+      // Reset previews
+      previewImage.style.display = 'none';
+      previewVideo.style.display = 'none';
+
+      // Check if the URL is an image or video
+      const fileType = getFileType(url);
+      if (fileType.startsWith('image')) {
+        // For images, display the image and overlay the GIF
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          // Create a canvas to overlay the GIF onto the image
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          // Load the GIF and overlay it
+          const gif = new Image();
+          gif.src = jorkinGifUrl;
+          gif.onload = () => {
+            // Position the GIF in the center
+            const x = (img.width - gif.width) / 2;
+            const y = (img.height - gif.height) / 2;
+            ctx.drawImage(gif, x, y);
+
+            // Set the canvas as the preview image
+            previewImage.src = canvas.toDataURL();
+            previewImage.style.display = 'block';
+          };
+        };
+      } else if (fileType.startsWith('video')) {
+        // For videos, display the video (no overlaying)
+        previewVideo.style.display = 'block';
+        previewVideo.src = url;
+      } else {
+        alert('Unsupported media type. Please provide an image or video URL.');
+      }
+    });
+
+    function getFileType(url) {
+      const extension = url.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+        return 'image';
+      } else if (['mp4', 'webm', 'ogg'].includes(extension)) {
+        return 'video';
+      }
+      return 'unknown';
+    }
+  </script>
+
 </body>
 </html>
