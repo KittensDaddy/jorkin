@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF Overlay Tool</title>
+</head>
+<body>
+    <h1>Upload a Media Link to Add Overlay</h1>
+    <form action="/process" method="POST">
+        <label for="main_media">Enter Media URL (image/video/GIF):</label><br>
+        <input type="text" id="main_media" name="main_media" required><br>
+        <button type="submit">Process</button>
+    </form>
+
+    {% if output_gif %}
+        <h2>Processed GIF:</h2>
+        <img src="{{ url_for('static', filename=output_gif) }}" alt="Processed GIF">
+    {% endif %}
+</body>
+</html>
