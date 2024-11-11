@@ -133,6 +133,28 @@
         }
     }
 
+    function handleUrl(url) {
+        const preview = document.getElementById('preview');
+        const videoPreview = document.getElementById('videoPreview');
+        const errorDiv = document.getElementById('error');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Determine if it's an image or video
+        const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const videoExts = ['mp4', 'webm', 'ogg'];
+        const urlExt = url.split('.').pop().toLowerCase();
+
+        if (imgExts.includes(urlExt)) {
+            // Handle Image
+            handleImage(url);
+        } else if (videoExts.includes(urlExt)) {
+            // Handle Video
+            handleVideo(url);
+        } else {
+            showError('Invalid file type from URL.');
+        }
+    }
+
     function handleImage(dataUrl) {
         const preview = document.getElementById('preview');
         const overlayGif = document.getElementById('overlayGif');
