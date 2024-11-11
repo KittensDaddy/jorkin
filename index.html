@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Overlay</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-
-    <!-- Updated gif.js library CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
-
+    <title>Overlay GIF onto Image or Video</title>
     <style>
         #preview {
             display: none;
@@ -21,10 +16,10 @@
     </style>
 </head>
 <body>
-    <h1>Overlay GIF onto Image/Video</h1>
+    <h1>Overlay GIF onto Image, GIF, or Video</h1>
 
-    <label for="imageUrl">Enter Image or Video URL:</label>
-    <input type="text" id="imageUrl" placeholder="Enter URL of image or video">
+    <label for="imageUrl">Enter Image, GIF, or Video URL:</label>
+    <input type="text" id="imageUrl" placeholder="Enter URL of image, GIF, or video">
     
     <button id="processButton">Process</button>
     
@@ -34,121 +29,125 @@
     
     <img id="preview" alt="Preview of GIF" />
 
-    <!-- Download Button for the processed GIF -->
     <a id="downloadLink" href="" style="display:none;">
         <button id="downloadButton">Download Processed GIF</button>
     </a>
 
     <script>
-        // Check if gif.js is loaded properly
-        if (typeof GIF === 'undefined') {
-            console.error("GIF.js library is not loaded");
-        } else {
-            console.log("GIF.js loaded successfully");
-        }
-
-        // Function to load image with CORS support
-        function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";  // Enable cross-origin loading
-                img.src = src;
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error('Image loading failed'));
-            });
-        }
-
-        // Function to load video with CORS support
-        function loadVideo(src) {
-            return new Promise((resolve, reject) => {
-                const video = document.createElement('video');
-                video.crossOrigin = "Anonymous";  // Enable cross-origin loading
-                video.src = src;
-                video.onloadeddata = () => resolve(video);
-                video.onerror = () => reject(new Error('Video loading failed'));
-            });
-        }
-
-        // Function to process and overlay GIF onto image/video
-        async function processAndOverlay() {
-            const imageSrc = document.getElementById('imageUrl').value;  // User input image URL
-            const overlaySrc = '/assets/jorkin.gif'; // Overlay GIF path
-
-            try {
-                // Load the main image
-                const image = await loadImage(imageSrc);
-
-                // Load the overlay GIF
-                const overlayImage = await loadImage(overlaySrc);
-
-                // Set up canvas to draw image and overlay
-                const canvas = document.getElementById('canvas');
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });  // Added willReadFrequently
-
-                canvas.width = image.width;
-                canvas.height = image.height;
-
-                // Draw the main image onto the canvas
-                ctx.drawImage(image, 0, 0);
-
-                // Prepare gif.js to generate the animated GIF
-                const gif = new GIF({
-                    workers: 2,
-                    quality: 10,
-                    width: canvas.width,
-                    height: canvas.height
-                });
-
-                // Create a frame for each overlay position
-                gif.addFrame(canvas, { delay: 500, copy: true });  // You can add multiple frames if necessary
-
-                // Add the overlay GIF as another frame
-                gif.addFrame(overlayImage, { delay: 500, copy: true });
-
-                // Finalize the GIF and display the result
-                gif.on('finished', function(blob) {
-                    const url = URL.createObjectURL(blob);
-                    displayPreview(url);  // Show the result as a preview
-                    enableDownload(url);  // Enable download link for the GIF
-                });
-
-                // Start generating the GIF
-                gif.render();
-
-                // Display processing message
-                document.getElementById('status').innerText = "Processing...";
-
-            } catch (error) {
-                console.error('Error loading resources:', error);
-                document.getElementById('status').innerText = "Error loading resources";
-            }
-        }
-
-        // Function to display the generated GIF preview
-        function displayPreview(url) {
-            const previewImg = document.getElementById('preview');
-            previewImg.src = url;  // Set the preview image source to the Blob URL
-            previewImg.style.display = 'block';  // Show the preview image
-        }
-
-        // Function to enable download of the generated GIF
-        function enableDownload(url) {
+        document.getElementById('processButton').addEventListener('click', function() {
+            const url = document.getElementById('imageUrl').value;
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const status = document.getElementById('status');
+            const preview = document.getElementById('preview');
             const downloadButton = document.getElementById('downloadButton');
             const downloadLink = document.getElementById('downloadLink');
-            
-            // Check if URL is valid
-            if (url) {
-                downloadLink.href = url;  // Set the download link to the GIF Blob URL
-                downloadLink.download = 'processed-image.gif';  // Set the default filename for download
-                downloadButton.style.display = 'inline-block';  // Show the download button
-                console.log('Download button should now be visible.');
-            } else {
-                console.log('Error: Blob URL is invalid.');
-            }
-        }
 
-        // Event listener for process button
-        document.getElementById('processButton').addEventListener('click', processAndOverlay);
+            status.textContent = "Processing...";
+
+            // Clear previous canvas or preview
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            preview.style.display = "none";
+            downloadButton.style.display = "none";
+
+            const img = new Image();
+            img.onload = function() {
+                // Set canvas size based on image size
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                // Draw the image onto the canvas
+                ctx.drawImage(img, 0, 0);
+                overlayGifOnCanvas(canvas, ctx);
+            };
+
+            img.onerror = function() {
+                // If image fails, attempt to load a video
+                const video = document.createElement('video');
+                video.src = url;
+                video.crossOrigin = 'anonymous';
+
+                video.onloadeddata = function() {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    video.play();
+                    // Draw each video frame onto canvas
+                    function drawFrame() {
+                        ctx.drawImage(video, 0, 0);
+                        overlayGifOnCanvas(canvas, ctx);
+                        if (!video.paused && !video.ended) {
+                            requestAnimationFrame(drawFrame);
+                        }
+                    }
+                    drawFrame();
+                };
+
+                video.onerror = function() {
+                    status.textContent = "Error loading image, GIF, or video.";
+                };
+            };
+
+            img.src = url;
+        });
+
+        function overlayGifOnCanvas(canvas, ctx) {
+            const gif = new Image();
+            gif.src = "jorkin.gif"; // The moving overlay GIF
+            gif.onload = function() {
+                const gifWidth = gif.width;
+                const gifHeight = gif.height;
+                const gifX = (canvas.width - gifWidth) / 2;
+                const gifY = (canvas.height - gifHeight) / 2;
+
+                // Create the GIF.js object with a higher frame rate and quality control
+                const gifGenerator = new GIF({
+                    workers: 2,
+                    quality: 10,  // Lower quality to reduce file size
+                    width: canvas.width,
+                    height: canvas.height,
+                    frameDelay: 100, // Frame delay to control speed (higher delay = slower)
+                    transparent: 0xFFFFFF,
+                    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+                });
+
+                // Add frames to the gifGenerator as we draw the gif
+                let frameIndex = 0;
+
+                function drawGifFrame() {
+                    // Redraw the image or video on the canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(gif, gifX, gifY);
+
+                    // Add frame to gif generator
+                    gifGenerator.addFrame(canvas, { copy: true, delay: 50 });
+
+                    frameIndex++;
+
+                    // Show the preview image
+                    const preview = document.getElementById('preview');
+                    preview.src = canvas.toDataURL();
+                    preview.style.display = "block";
+
+                    // Check the file size, stop adding frames if it exceeds the limit
+                    if (frameIndex < 20 && gifGenerator.getBytes() < 2 * 1024 * 1024) {
+                        requestAnimationFrame(drawGifFrame);
+                    } else {
+                        // Process the GIF and generate download link
+                        gifGenerator.on('finished', function(blob) {
+                            const url = URL.createObjectURL(blob);
+                            downloadLink.href = url;
+                            downloadButton.style.display = "block";
+                            status.textContent = "Processing complete.";
+                        });
+
+                        gifGenerator.render();
+                    }
+                }
+
+                drawGifFrame();
+            };
+        }
     </script>
 </body>
 </html>
