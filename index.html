@@ -15,8 +15,8 @@
         }
     </style>
     
-    <!-- Use the correct gif.js library link -->
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
+    <!-- Use the locally hosted gif.js file -->
+    <script src="gif.min.js"></script> <!-- Path to your local gif.min.js file -->
 </head>
 <body>
     <h1>Overlay GIF onto Image, GIF, or Video</h1>
@@ -113,7 +113,7 @@
                     height: canvas.height,
                     frameDelay: 100, // Frame delay to control speed (higher delay = slower)
                     transparent: 0xFFFFFF,
-                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+                    workerScript: './gif.worker.js' // Path to your local gif.worker.js file
                 });
 
                 // Add frames to the gifGenerator as we draw the gif
