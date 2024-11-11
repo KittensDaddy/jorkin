@@ -72,10 +72,13 @@
 </div>
 
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
 
 <script>
     const jorkinGifSrc = 'jorkin.gif'; // URL or local path to the jorkin.gif
     const maxFileSize = 10 * 1024 * 1024; // 10MB
+
+    let gif;
 
     function processFile() {
         const fileInput = document.getElementById('fileInput');
@@ -136,6 +139,17 @@
         preview.style.display = 'block';
         preview.src = dataUrl;
         document.getElementById('downloadBtn').style.display = 'block';
+
+        // Initialize GIF generator
+        gif = new GIF({
+            workers: 2,
+            quality: 10,
+            width: preview.width,
+            height: preview.height
+        });
+
+        // Add the first frame
+        addFrame(preview);
     }
 
     function handleVideo(dataUrl) {
@@ -145,24 +159,41 @@
         videoPreview.style.display = 'block';
         videoPreview.src = dataUrl;
         document.getElementById('downloadBtn').style.display = 'none'; // Video download is more complex
+
+        // Initialize GIF generator
+        gif = new GIF({
+            workers: 2,
+            quality: 10,
+            width: videoPreview.videoWidth,
+            height: videoPreview.videoHeight
+        });
+
+        // Capture video frames
+        videoPreview.addEventListener('play', function() {
+            if (!videoPreview.paused && !videoPreview.ended) {
+                addFrame(videoPreview);
+                setTimeout(function () {
+                    addFrame(videoPreview);
+                }, 100); // Capture every 100ms for the GIF
+            }
+        });
     }
 
-    function handleUrl(url) {
-        const preview = document.getElementById('preview');
-        const videoPreview = document.getElementById('videoPreview');
-        const fileType = url.split('.').pop().toLowerCase();
+    function addFrame(element) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = element.width || element.videoWidth;
+        canvas.height = element.height || element.videoHeight;
 
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
-            preview.style.display = 'block';
-            preview.src = url;
-            document.getElementById('downloadBtn').style.display = 'block';
-        } else if (['mp4', 'webm', 'ogg'].includes(fileType)) {
-            videoPreview.style.display = 'block';
-            videoPreview.src = url;
-            document.getElementById('downloadBtn').style.display = 'none'; // Video download is more complex
-        } else {
-            showError('Unsupported file type.');
-        }
+        // Draw the element (image or video) to the canvas
+        ctx.drawImage(element, 0, 0, canvas.width, canvas.height);
+
+        // Overlay the GIF
+        const overlayGif = document.getElementById('overlayGif');
+        ctx.drawImage(overlayGif, 10, canvas.height - overlayGif.height - 10);
+
+        // Add this frame to the GIF generator
+        gif.addFrame(canvas, { delay: 100, copy: true });
     }
 
     function showError(message) {
@@ -176,38 +207,15 @@
     }
 
     function downloadGif() {
-        const preview = document.getElementById('preview');
-        const videoPreview = document.getElementById('videoPreview');
-        const overlayGif = document.getElementById('overlayGif');
-
-        // Check if it's an image or video
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const downloadBtn = document.getElementById('downloadBtn');
-
-        if (preview.style.display === 'block') {
-            // Image case
-            canvas.width = preview.width;
-            canvas.height = preview.height;
-            ctx.drawImage(preview, 0, 0);
-        } else if (videoPreview.style.display === 'block') {
-            // Video frame capture
-            const video = videoPreview;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-        }
-
-        // Overlay the GIF onto the canvas
-        ctx.drawImage(overlayGif, 10, canvas.height - overlayGif.height - 10);
-
-        // Convert canvas to GIF (using an external library like gif.js or similar would be needed here)
-        canvas.toBlob(function(blob) {
+        gif.on('finished', function(blob) {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'combined_overlay.gif';
             link.click();
         });
+
+        // Render the GIF
+        gif.render();
     }
 </script>
 
