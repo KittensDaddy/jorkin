@@ -77,9 +77,16 @@ function displayPreview(url) {
 function enableDownload(url) {
     const downloadButton = document.getElementById('downloadButton');
     const downloadLink = document.getElementById('downloadLink');
-    downloadLink.href = url;  // Set the download link to the GIF Blob URL
-    downloadLink.download = 'processed-image.gif';  // Set the default filename for download
-    downloadButton.style.display = 'inline-block';  // Show the download button
+    
+    // Check if URL is valid
+    if (url) {
+        downloadLink.href = url;  // Set the download link to the GIF Blob URL
+        downloadLink.download = 'processed-image.gif';  // Set the default filename for download
+        downloadButton.style.display = 'inline-block';  // Show the download button
+        console.log('Download button should now be visible.');
+    } else {
+        console.log('Error: Blob URL is invalid.');
+    }
 }
 
 // Event listener for process button
