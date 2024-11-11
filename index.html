@@ -1,22 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GIF Overlay Tool</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Overlay</title>
+    <style>
+        #preview {
+            display: none;
+            max-width: 100%;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>GIF Overlay Tool</h1>
-    <label for="file-input">Provide a link to an image, GIF, or video:</label>
-    <input type="url" id="file-input" placeholder="Enter URL here">
-    <button id="overlay-btn">Apply Overlay</button>
-    <button id="preview-btn" style="display:none;">Preview</button>
-    <button id="save-btn" style="display:none;">Save GIF</button>
-    <div id="output-container"></div>
-  </div>
+    <h1>Overlay GIF onto Image/Video</h1>
 
-  <script src="script.js"></script>
+    <label for="imageUrl">Enter Image or Video URL:</label>
+    <input type="text" id="imageUrl" placeholder="Enter URL of image or video">
+    
+    <button id="processButton">Process</button>
+    
+    <p id="status">Ready</p>
+    
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="preview" alt="Preview of GIF" />
+    
+    <script src="script.js"></script>
 </body>
 </html>
