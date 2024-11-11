@@ -30,6 +30,7 @@ function addOverlayToImage(imageURL) {
     canvas.width = image.width;
     canvas.height = image.height;
     ctx.drawImage(image, 0, 0);
+
     const overlayImage = new Image();
     overlayImage.src = 'jorkin.gif';  // Your fixed GIF
     overlayImage.onload = function() {
@@ -39,6 +40,11 @@ function addOverlayToImage(imageURL) {
         displayPreview(previewBlobURL);
       }, 'image/gif');
     };
+  };
+
+  image.onerror = function() {
+    alert("There was an error loading the image.");
+    document.getElementById('output-container').innerHTML = "";
   };
 }
 
@@ -51,22 +57,31 @@ function addOverlayToVideo(videoURL) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     video.play();
-    ctx.drawImage(video, 0, 0);
+
     const overlayImage = new Image();
     overlayImage.src = 'jorkin.gif';  // Your fixed GIF
     overlayImage.onload = function() {
-      ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
-      canvas.toBlob(function(blob) {
-        previewBlobURL = URL.createObjectURL(blob);
-        displayPreview(previewBlobURL);
-      }, 'image/gif');
+      video.addEventListener('play', function() {
+        ctx.drawImage(video, 0, 0);
+        ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
+        canvas.toBlob(function(blob) {
+          previewBlobURL = URL.createObjectURL(blob);
+          displayPreview(previewBlobURL);
+        }, 'image/gif');
+      });
     };
+  };
+
+  video.onerror = function() {
+    alert("There was an error loading the video.");
+    document.getElementById('output-container').innerHTML = "";
   };
 }
 
 function displayPreview(blobURL) {
   const outputContainer = document.getElementById('output-container');
   outputContainer.innerHTML = '';
+
   const resultGif = document.createElement('img');
   resultGif.src = blobURL;
   outputContainer.appendChild(resultGif);
