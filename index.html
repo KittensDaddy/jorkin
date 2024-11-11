@@ -14,9 +14,9 @@
             margin-top: 20px;
         }
     </style>
-	    <!-- Add GIF.js Library -->
+    
+    <!-- Use the correct gif.js library link -->
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
-
 </head>
 <body>
     <h1>Overlay GIF onto Image, GIF, or Video</h1>
@@ -54,6 +54,8 @@
             downloadButton.style.display = "none";
 
             const img = new Image();
+            img.crossOrigin = "anonymous"; // Enable cross-origin for images
+
             img.onload = function() {
                 // Set canvas size based on image size
                 canvas.width = img.width;
@@ -68,7 +70,7 @@
                 // If image fails, attempt to load a video
                 const video = document.createElement('video');
                 video.src = url;
-                video.crossOrigin = 'anonymous';
+                video.crossOrigin = 'anonymous'; // Enable cross-origin for videos
 
                 video.onloadeddata = function() {
                     canvas.width = video.videoWidth;
@@ -111,8 +113,7 @@
                     height: canvas.height,
                     frameDelay: 100, // Frame delay to control speed (higher delay = slower)
                     transparent: 0xFFFFFF,
-                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js'
-					
+                    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
                 });
 
                 // Add frames to the gifGenerator as we draw the gif
