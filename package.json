@@ -1,1 +1,16 @@
-npm install --save-dev rollup
+{
+  "name": "jorkin",
+  "version": "1.0.0",
+  "description": "A brief description of your project",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "rollup": "^2.56.3"
+  }
+}
