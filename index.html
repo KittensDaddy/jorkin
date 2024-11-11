@@ -52,7 +52,7 @@
                 if (file) formData.append('file', file);
                 if (url) formData.append('url', url);
 
-                fetch('/api/process', {
+                fetch('/api/process.js', {
                     method: 'POST',
                     body: formData
                 })
