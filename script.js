@@ -1,5 +1,6 @@
 let previewBlobURL = '';
 
+// Event listener for the overlay button
 document.getElementById('overlay-btn').addEventListener('click', function() {
   const fileURL = document.getElementById('file-input').value;
   if (!fileURL) {
@@ -8,9 +9,8 @@ document.getElementById('overlay-btn').addEventListener('click', function() {
   }
 
   const outputContainer = document.getElementById('output-container');
-  outputContainer.innerHTML = "Processing...";
+  outputContainer.innerHTML = "Processing...";  // Initial Processing message
 
-  // Clear any previous result
   document.getElementById('preview-btn').style.display = 'none';
   document.getElementById('save-btn').style.display = 'none';
 
@@ -25,30 +25,36 @@ document.getElementById('overlay-btn').addEventListener('click', function() {
   }
 });
 
+// Function to handle adding overlay to images
 function addOverlayToImage(imageURL) {
   const image = new Image();
   image.src = imageURL;
+
   image.onload = function() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = image.width;
     canvas.height = image.height;
 
-    // Draw image and overlay
-    ctx.drawImage(image, 0, 0);
-    const overlayImage = new Image();
-    overlayImage.src = 'jorkin.gif';  // Your fixed GIF
-    overlayImage.onload = function() {
-      // Draw overlay on the image
-      ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
+    ctx.drawImage(image, 0, 0); // Draw the image onto the canvas
 
-      // Allow the UI to update by using setTimeout or requestAnimationFrame
+    const overlayImage = new Image();
+    overlayImage.src = 'jorkin.gif';  // Your fixed GIF overlay
+
+    overlayImage.onload = function() {
+      ctx.drawImage(overlayImage, 50, 50);  // Position of overlay image on the main image
+
+      // Use setTimeout to allow the UI to refresh between processing
       setTimeout(() => {
         canvas.toBlob(function(blob) {
           previewBlobURL = URL.createObjectURL(blob);
           displayPreview(previewBlobURL);
         }, 'image/gif');
-      }, 0); // Ensure UI refresh
+      }, 0); // Non-blocking refresh of UI
+    };
+
+    overlayImage.onerror = function() {
+      alert("There was an error loading the overlay image.");
     };
   };
 
@@ -58,33 +64,38 @@ function addOverlayToImage(imageURL) {
   };
 }
 
+// Function to handle adding overlay to video
 function addOverlayToVideo(videoURL) {
   const video = document.createElement('video');
   video.src = videoURL;
+
   video.onloadeddata = function() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Draw first frame of video
+    // Draw the first frame of the video
     video.play();
     video.addEventListener('play', function() {
       ctx.drawImage(video, 0, 0);
 
-      // Load the overlay and apply
       const overlayImage = new Image();
-      overlayImage.src = 'jorkin.gif';  // Your fixed GIF
-      overlayImage.onload = function() {
-        ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
+      overlayImage.src = 'jorkin.gif';  // Your fixed GIF overlay
 
-        // Allow UI to update
+      overlayImage.onload = function() {
+        ctx.drawImage(overlayImage, 50, 50);  // Position of overlay image on the video frame
+
         setTimeout(() => {
           canvas.toBlob(function(blob) {
             previewBlobURL = URL.createObjectURL(blob);
             displayPreview(previewBlobURL);
           }, 'image/gif');
-        }, 0); // Ensure UI refresh
+        }, 0); // Non-blocking refresh of UI
+      };
+
+      overlayImage.onerror = function() {
+        alert("There was an error loading the overlay image.");
       };
     });
   };
@@ -95,19 +106,21 @@ function addOverlayToVideo(videoURL) {
   };
 }
 
+// Function to display the preview image or video
 function displayPreview(blobURL) {
   const outputContainer = document.getElementById('output-container');
-  outputContainer.innerHTML = '';
+  outputContainer.innerHTML = '';  // Clear any previous content
 
   const resultGif = document.createElement('img');
   resultGif.src = blobURL;
   outputContainer.appendChild(resultGif);
 
-  // Show preview and save buttons
+  // Display preview and save buttons
   document.getElementById('preview-btn').style.display = 'inline-block';
   document.getElementById('save-btn').style.display = 'inline-block';
 }
 
+// Preview button to show the result in a new window
 document.getElementById('preview-btn').addEventListener('click', function() {
   if (previewBlobURL) {
     const previewWindow = window.open(previewBlobURL);
@@ -117,6 +130,7 @@ document.getElementById('preview-btn').addEventListener('click', function() {
   }
 });
 
+// Save button to download the result
 document.getElementById('save-btn').addEventListener('click', function() {
   if (previewBlobURL) {
     const a = document.createElement('a');
