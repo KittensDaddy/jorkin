@@ -1,105 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combine Media with Jorkin.gif</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        input[type="file"], input[type="url"] {
-            margin: 10px;
-        }
-        #preview {
-            margin-top: 20px;
-            max-width: 100%;
-            max-height: 400px;
-        }
-        .overlay-container {
-            position: relative;
-            display: inline-block;
-        }
-        .overlay-container img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-        .overlay {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 100px;
-            height: 100px;
-            background-image: url('jorkin.gif');
-            background-size: cover;
-            background-position: center;
-        }
-    </style>
-</head>
-<body>
+<script>
+    function processMedia() {
+        const fileInput = document.getElementById('media-file');
+        const urlInput = document.getElementById('media-url');
+        const previewImage = document.getElementById('preview');
+        const errorMessage = document.getElementById('error-message');
+        const saveButton = document.getElementById('save-btn');
+        errorMessage.textContent = '';
 
-    <h1>Combine Your Media with Jorkin.gif</h1>
-    <p>Upload or provide a URL for an image, GIF, or video (Max 10MB) to combine with <strong>jorkin.gif</strong>.</p>
+        const formData = new FormData();
+        let mediaFile = fileInput.files[0];
+        let mediaUrl = urlInput.value;
 
-    <input type="url" id="media-url" placeholder="Enter URL of an image, GIF, or video">
-    <br>
-    <input type="file" id="media-file" accept="image/*,video/*,.gif">
-    <br>
-    <button onclick="processMedia()">Process</button>
-    <br>
-    <div id="preview-container" class="overlay-container">
-        <img id="preview" src="" alt="Preview will appear here">
-        <div id="overlay" class="overlay"></div>
-    </div>
-    <br>
-    <p id="error-message" style="color: red;"></p>
+        if (!mediaFile && !mediaUrl) {
+            errorMessage.textContent = 'Please provide a file or a URL.';
+            return;
+        }
 
-    <script>
-        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-
-        function processMedia() {
-            const fileInput = document.getElementById('media-file');
-            const urlInput = document.getElementById('media-url');
-            const errorMessage = document.getElementById('error-message');
-            const previewImage = document.getElementById('preview');
-            const overlay = document.getElementById('overlay');
-            errorMessage.textContent = '';
-
-            let mediaFile = fileInput.files[0];
-            let mediaUrl = urlInput.value;
-
-            if (!mediaFile && !mediaUrl) {
-                errorMessage.textContent = 'Please provide either a file or a URL.';
+        if (mediaFile) {
+            if (mediaFile.size > 10 * 1024 * 1024) {
+                errorMessage.textContent = 'File size exceeds the 10MB limit.';
                 return;
             }
-
-            if (mediaFile) {
-                if (mediaFile.size > maxSize) {
-                    errorMessage.textContent = 'File size exceeds the 10MB limit.';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    let mediaUrl = e.target.result;
-                    previewImage.src = mediaUrl;
-                    overlay.style.display = 'block';
-                };
-                reader.readAsDataURL(mediaFile);
-            } else if (mediaUrl) {
-                const img = new Image();
-                img.onload = function() {
-                    previewImage.src = mediaUrl;
-                    overlay.style.display = 'block';
-                };
-                img.onerror = function() {
-                    errorMessage.textContent = 'Failed to load media from the URL.';
-                };
-                img.src = mediaUrl;
-            }
+            formData.append('media', mediaFile);
+        } else {
+            formData.append('url', mediaUrl);
         }
-    </script>
 
-</body>
-</html>
+        // Send the request to the Vercel serverless function
+        fetch('/api/process-media', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            previewImage.src = url;
+            saveButton.style.display = 'block';
+        })
+        .catch(error => {
+            errorMessage.textContent = 'Error: ' + error;
+        });
+    }
+</script>
