@@ -3,154 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overlay GIF on Image, GIF, or Video</title>
+    <title>Overlay GIF</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
+        }
+        input[type="file"], input[type="url"] {
+            margin-top: 20px;
+        }
+        img, video {
+            max-width: 100%;
+            margin-top: 20px;
         }
         #preview {
-            display: none;
-            margin-top: 20px;
-            max-width: 100%;
-            height: auto;
-        }
-        #status {
-            margin-top: 20px;
-        }
-        #downloadButton {
-            display: none;
             margin-top: 20px;
         }
     </style>
-    <script src="/gif.min.js"></script>
 </head>
 <body>
-    <h1>Overlay GIF on Image, GIF, or Video</h1>
-
-    <label for="imageUrl">Enter Image, GIF, or Video URL:</label>
-    <input type="text" id="imageUrl" placeholder="Enter URL">
-    <button id="processButton">Process</button>
+    <h1>Overlay GIF on Your Media</h1>
+    <p>Upload or link to an image, GIF, or video below, and we'll overlay the <strong>jorkin.gif</strong> for you!</p>
     
-    <p id="status">Ready</p>
-
-    <canvas id="canvas" style="display: none;"></canvas>
-
-    <img id="preview" alt="Preview of GIF">
+    <!-- File Input -->
+    <input type="url" id="urlInput" placeholder="Enter image/video URL" />
+    <br>
+    <input type="file" id="fileInput" />
+    <br>
+    <button onclick="processMedia()">Overlay GIF</button>
     
-    <a id="downloadLink" href="" style="display:none;">
-        <button id="downloadButton">Download Processed GIF</button>
-    </a>
+    <!-- Preview Area -->
+    <div id="preview"></div>
 
     <script>
-        document.getElementById('processButton').addEventListener('click', function() {
-            const url = document.getElementById('imageUrl').value;
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            const status = document.getElementById('status');
-            const preview = document.getElementById('preview');
-            const downloadButton = document.getElementById('downloadButton');
-            const downloadLink = document.getElementById('downloadLink');
-            const gifUrl = "jorkin.gif"; // The moving overlay GIF
+        const urlInput = document.getElementById('urlInput');
+        const fileInput = document.getElementById('fileInput');
+        const previewDiv = document.getElementById('preview');
 
-            status.textContent = "Processing...";
+        function processMedia() {
+            previewDiv.innerHTML = ''; // Clear preview
 
-            // Clear previous content
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            preview.style.display = "none";
-            downloadButton.style.display = "none";
-
-            const img = new Image();
-            img.crossOrigin = "anonymous"; // Allow cross-origin images
-            img.onload = function() {
-                // Set canvas size based on the image
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                processOverlayGif();
-            };
-
-            img.onerror = function() {
-                // If image fails, try loading as a video
-                const video = document.createElement('video');
-                video.src = url;
-                video.crossOrigin = "anonymous";
+            const file = fileInput.files[0];
+            const url = urlInput.value;
+            
+            if (file || url) {
+                const formData = new FormData();
                 
-                video.onloadeddata = function() {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    video.play();
-                    function drawFrame() {
-                        ctx.drawImage(video, 0, 0);
-                        processOverlayGif();
-                        if (!video.paused && !video.ended) {
-                            requestAnimationFrame(drawFrame);
-                        }
-                    }
-                    drawFrame();
-                };
+                if (file) formData.append('file', file);
+                if (url) formData.append('url', url);
 
-                video.onerror = function() {
-                    status.textContent = "Error loading image, GIF, or video.";
-                };
-            };
-
-            img.src = url;
-
-            function processOverlayGif() {
-                const gif = new Image();
-                gif.src = gifUrl;
-                
-                gif.onload = function() {
-                    const gifWidth = gif.width;
-                    const gifHeight = gif.height;
-                    const gifX = (canvas.width - gifWidth) / 2;
-                    const gifY = (canvas.height - gifHeight) / 2;
-
-                    const gifGenerator = new GIF({
-                        workers: 2,
-                        quality: 10,
-                        width: canvas.width,
-                        height: canvas.height,
-                        frameDelay: 100,
-                        transparent: 0xFFFFFF,
-                        workerScript: '/gif.worker.js'
-                    });
-
-                    let frameIndex = 0;
-
-                    function drawGifFrame() {
-                        // Redraw the background image/video
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(gif, gifX, gifY);
-
-                        // Add the current canvas frame to the GIF generator
-                        gifGenerator.addFrame(canvas, { copy: true, delay: 50 });
-
-                        frameIndex++;
-
-                        // Show the preview
-                        preview.src = canvas.toDataURL();
-                        preview.style.display = "block";
-
-                        if (frameIndex < 30) { // Process a limited number of frames
-                            requestAnimationFrame(drawGifFrame);
-                        } else {
-                            gifGenerator.on('finished', function(blob) {
-                                const url = URL.createObjectURL(blob);
-                                downloadLink.href = url;
-                                downloadButton.style.display = "block";
-                                status.textContent = "Processing complete.";
-                            });
-                            gifGenerator.render(); // Render and finalize the GIF
-                        }
-                    }
-
-                    drawGifFrame();
-                };
+                fetch('/api/process', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const img = document.createElement('img');
+                    img.src = url;
+                    previewDiv.appendChild(img);
+                })
+                .catch(err => alert('Error processing the media.'));
+            } else {
+                alert('Please provide either a file or a URL!');
             }
-        });
+        }
     </script>
 </body>
 </html>
