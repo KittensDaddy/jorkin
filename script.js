@@ -1,3 +1,5 @@
+let previewBlobURL = '';
+
 document.getElementById('overlay-btn').addEventListener('click', function() {
   const fileURL = document.getElementById('file-input').value;
   if (!fileURL) {
@@ -33,8 +35,8 @@ function addOverlayToImage(imageURL) {
     overlayImage.onload = function() {
       ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
       canvas.toBlob(function(blob) {
-        const url = URL.createObjectURL(blob);
-        displayResult(url);
+        previewBlobURL = URL.createObjectURL(blob);
+        displayPreview(previewBlobURL);
       }, 'image/gif');
     };
   };
@@ -55,17 +57,40 @@ function addOverlayToVideo(videoURL) {
     overlayImage.onload = function() {
       ctx.drawImage(overlayImage, 50, 50);  // Adjust the position of the overlay
       canvas.toBlob(function(blob) {
-        const url = URL.createObjectURL(blob);
-        displayResult(url);
+        previewBlobURL = URL.createObjectURL(blob);
+        displayPreview(previewBlobURL);
       }, 'image/gif');
     };
   };
 }
 
-function displayResult(blobURL) {
+function displayPreview(blobURL) {
   const outputContainer = document.getElementById('output-container');
   outputContainer.innerHTML = '';
   const resultGif = document.createElement('img');
   resultGif.src = blobURL;
   outputContainer.appendChild(resultGif);
+  
+  document.getElementById('preview-btn').style.display = 'inline-block';
+  document.getElementById('save-btn').style.display = 'inline-block';
 }
+
+document.getElementById('preview-btn').addEventListener('click', function() {
+  if (previewBlobURL) {
+    const previewWindow = window.open(previewBlobURL);
+    previewWindow.document.write('<img src="' + previewBlobURL + '" />');
+  } else {
+    alert("No preview available.");
+  }
+});
+
+document.getElementById('save-btn').addEventListener('click', function() {
+  if (previewBlobURL) {
+    const a = document.createElement('a');
+    a.href = previewBlobURL;
+    a.download = 'result.gif';
+    a.click();
+  } else {
+    alert("No result available to save.");
+  }
+});
