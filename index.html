@@ -229,6 +229,7 @@
     }
 
     function downloadGif() {
+        // Ensure the GIF is finished rendering before downloading
         gif.on('finished', function(blob) {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -236,7 +237,7 @@
             link.click();
         });
 
-        // Render the GIF
+        // Start the rendering process
         gif.render();
     }
 </script>
