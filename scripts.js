@@ -1,43 +1,27 @@
 document.getElementById('combineBtn').addEventListener('click', async () => {
-    const gifUrl = document.getElementById('gifUrl').value;
-    const jorkinUrl = 'jorkin.gif'; // Replace with the actual path to jorkin.gif
+    const mediaLink = document.getElementById('mediaLink').value;
+    const corner = document.getElementById('cornerSelect').value;
 
-    // Validate URL and file size
-    const response = await fetch(gifUrl);
-    const blob = await response.blob();
-    if (blob.size > 10 * 1024 * 1024) {
-        alert('File size exceeds 10MB limit.');
+    // Validate the media link and size
+    if (!mediaLink) {
+        alert('Please enter a valid media link.');
         return;
     }
 
-    // Create a combined GIF
-    const combinedGif = document.createElement('canvas');
-    const ctx = combinedGif.getContext('2d');
-
-    const userGif = await loadImage(gifUrl);
-    const jorkinGif = await loadImage(jorkinUrl);
-
-    // Set canvas size
-    combinedGif.width = userGif.width;
-    combinedGif.height = userGif.height;
-
-    // Draw user GIF
-    ctx.drawImage(userGif, 0, 0);
-
-    // Draw jorkin GIF
-    ctx.drawImage(jorkinGif, 0, userGif.height - jorkinGif.height / 2, jorkinGif.width / 2, jorkinGif.height / 2);
-
-    // Set the combined GIF as the source for preview
-    document.getElementById('combinedGif').src = combinedGif.toDataURL('image/gif');
-});
-
-// Function to load an image
-function loadImage(url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous'; // Handle CORS
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = url;
+    // Send request to the server to combine GIFs
+    const response = await fetch('/combine', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mediaLink, corner }),
     });
-}
+
+    const result = await response.json();
+    if (result.success) {
+        document.getElementById('preview').innerHTML = `<img src="${result.combinedGif}" alt="Combined GIF" />`;
+        document.getElementById('saveBtn').style.display = 'block';
+    } else {
+        alert('Error combining GIF: ' + result.message);
+    }
+});

@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+#previewContainer {
+    position: relative;
+    display: inline-block;
+}
+
+#combinedGif {
+    max-width: 100%;
+    height: auto;
+}
+
+#jorkin {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50%; /* 50% of the linked GIF */
+}

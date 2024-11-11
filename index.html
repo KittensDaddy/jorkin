@@ -4,15 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIF Combiner</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>GIF Combiner</h1>
-    <input type="text" id="gifUrl" placeholder="Enter GIF/Video URL" />
+    <input type="text" id="mediaLink" placeholder="Enter image/video URL" />
+    <select id="cornerSelect">
+        <option value="top-left">Top Left</option>
+        <option value="top-right">Top Right</option>
+        <option value="bottom-left">Bottom Left</option>
+        <option value="bottom-right">Bottom Right</option>
+    </select>
     <button id="combineBtn">Combine GIF</button>
-    <div id="previewContainer">
-        <img id="combinedGif" src="" alt="Combined GIF Preview" />
-    </div>
+    <div id="preview"></div>
+    <button id="saveBtn" style="display:none;">Save Combined GIF</button>
     <script src="script.js"></script>
 </body>
 </html>
