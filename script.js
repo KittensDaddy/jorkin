@@ -41,25 +41,33 @@ async function processAndOverlay() {
         // Draw the main image onto the canvas
         ctx.drawImage(image, 0, 0);
 
-        // Draw the overlay image (GIF) onto the canvas
-        ctx.drawImage(overlayImage, 50, 50);  // Change position as needed
+        // Prepare gif.js to generate the animated GIF
+        const gif = new GIF({
+            workers: 2,
+            quality: 10,
+            width: canvas.width,
+            height: canvas.height
+        });
+
+        // Create a frame for each overlay position
+        gif.addFrame(canvas, { delay: 500, copy: true });  // You can add multiple frames if necessary
+
+        // Add the overlay GIF as another frame
+        gif.addFrame(overlayImage, { delay: 500, copy: true });
+
+        // Finalize the GIF and display the result
+        gif.on('finished', function(blob) {
+            const url = URL.createObjectURL(blob);
+            displayPreview(url);  // Show the result as a preview
+            enableDownload(url);  // Enable download link for the GIF
+        });
+
+        // Start generating the GIF
+        gif.render();
 
         // Display processing message
         document.getElementById('status').innerText = "Processing...";
 
-        // Convert canvas to GIF Blob
-        canvas.toBlob(function(blob) {
-            if (blob) {
-                const url = URL.createObjectURL(blob);
-                displayPreview(url);  // Show the result as a preview
-                enableDownload(url);  // Enable download link for the GIF
-            } else {
-                console.error("Error: Failed to create blob from canvas.");
-            }
-
-            // Reset status
-            document.getElementById('status').innerText = "Done!";
-        }, 'image/gif');
     } catch (error) {
         console.error('Error loading resources:', error);
         document.getElementById('status').innerText = "Error loading resources";
