@@ -40,7 +40,8 @@
         document.getElementById('processButton').addEventListener('click', function() {
             const url = document.getElementById('imageUrl').value;
             const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
+			const ctx = canvas.getContext('2d');
+			ctx.willReadFrequently = true;  // Set this flag for optimized read operations
             const status = document.getElementById('status');
             const preview = document.getElementById('preview');
             const downloadButton = document.getElementById('downloadButton');
